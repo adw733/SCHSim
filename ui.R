@@ -1,6 +1,8 @@
 library(shinydashboard)
+library(plotly)
 library(rhandsontable)
 library(deSolve)
+library(tictoc)
 options(shiny.sanitize.errors = TRUE)
 
 #*************************************************************************************************
@@ -27,7 +29,6 @@ body <- dashboardBody(
   tabItems(
     
     #*************************************************************************************************
-    #tabItem(tabName = "introducao", withMathJax(), includeHTML("/home/adw733/Shiny/introducao.html")),
     tabItem(tabName = "introducao", withMathJax(), includeHTML("/srv/shiny-server/SCHSim/introducao.html")),
     
     tabItem(tabName = "plot",
@@ -62,7 +63,7 @@ body <- dashboardBody(
               column(width = 9,
                      box(width = NULL,
                          h4("Gráfico"),
-                         tabPanel("PLV x PA1", plotOutput("plot")) 
+                         tabPanel("PLV x PA1", plotlyOutput("plot"))
                          )),
                              
         
@@ -113,8 +114,8 @@ body <- dashboardBody(
     
     
     #*************************************************************************************************
-    #tabItem(tabName = "about", includeHTML("/home/adw733/Shiny/sobre.html"))  ) 
     tabItem(tabName = "about", includeHTML("/srv/shiny-server/SCHSim/sobre.html"))  )
+  )
 )
 
 #*************************************************************************************************
