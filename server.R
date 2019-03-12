@@ -9,8 +9,8 @@ shinyServer(function(input, output, session){
   
   #*********************************************************************************************
   #Importa os dados de um arquivo do Excel e monta a tabela
-  #data <- rio::import("/srv/shiny-server/SCHSim/variaveis.xlsx")
-  data <- rio::import("/home/adw733/Shiny/variaveis.xlsx")
+  data <- rio::import("/srv/shiny-server/SCHSim/variaveis.xlsx")
+  #data <- rio::import("/home/adw733/Shiny/variaveis.xlsx")
   
   
   #Criando um data frame
