@@ -1,17 +1,17 @@
 library(shinydashboard)
+library(plotly)
 library(rhandsontable)
 library(deSolve)
+library(tictoc)
 options(shiny.sanitize.errors = TRUE)
 
 
 shinyServer(function(input, output, session){      
-
+  
   
   #*********************************************************************************************
   #Importa os dados de um arquivo do Excel e monta a tabela
   data <- rio::import("/srv/shiny-server/SCHSim/variaveis.xlsx")
-  #data <- rio::import("/home/adw733/Shiny/variaveis.xlsx")
-  
   
   #Criando um data frame
   df = data.frame(data)
@@ -49,6 +49,8 @@ shinyServer(function(input, output, session){
   #Verifica alteração nos campos calcula a ODE
   observeEvent(((input$tsim)|(input$step)|(unlist((input$table$changes$changes), use.names=FALSE))), {
   
+    tic()   
+   
     #Lê a variável transformada para data.frame
     data=datavalues$data
     
@@ -60,56 +62,56 @@ shinyServer(function(input, output, session){
     RP3   <- data[4,2]   # Resistência Artéria Pulmonar 3
     RL1   <- data[5,2]   # Resistência Veia Pulmonar 1
     RL2   <- data[6,2]   # Resistência Veia Pulmonar 2
-    RLA   <- data[7,2]   # Resistência ?trio Esquerdo
-    RLV   <- data[8,2]   # Resistência Ventr?culo Esquerdo
+    RLA   <- data[7,2]   # Resistência Átrio Esquerdo
+    RLV   <- data[8,2]   # Resistência Ventrículo Esquerdo
     RA1   <- data[9,2]   # Resistência Artéria Aorta 0
     RA2   <- data[10,2]   # Resistência Artéria Aorta 1
     RA3   <- data[11,2]   # Resistência Artéria Aorta 2
     RV1   <- data[12,2]   # Resistência Circulação Sistêmica
     RV2   <- data[13,2]   # Resistência Veias Sistêmicas 1
     RRA   <- data[14,2]   # Resistência Veias Sistêmicas 2
-    RRV   <- data[15,2]   # Resistência ?trio Direito
-    RPW2  <- data[16,2]   # Resistência Ventr?culo Direito
+    RRV   <- data[15,2]   # Resistência Átrio Direito
+    RPW2  <- data[16,2]   # Resistência Ventrículo Direito
     LP1   <- data[17,2]   # Inércia Artéria Pulmonar
     LL2   <- data[18,2]   # Inércia Veia Pulmonar
-    LLA   <- data[19,2]   # Inércia ?trio Esquerdo 
-    LLV   <- data[20,2]   # Inércia Ventr?culo Esquerdo 
+    LLA   <- data[19,2]   # Inércia Átrio Esquerdo 
+    LLV   <- data[20,2]   # Inércia Ventrículo Esquerdo 
     LA1   <- data[21,2]   # Inércia Artéria Aorta
     LV2   <- data[22,2]   # Inércia Veias Sistêmicas
-    LRA   <- data[23,2]   # Inércia trio Direito
-    LRV   <- data[24,2]   # Inércia Ventr?culo Direito
+    LRA   <- data[23,2]   # Inércia Átrio Direito
+    LRV   <- data[24,2]   # Inércia Ventrículo Direito
     CP1  <- data[25,2]   # Complacência Artéria Pulmonar 1
     CP2  <- data[26,2]   # Complacência Artéria Pulmonar 2
     CP3  <- data[27,2]   # Complacência Artéria Pulmonar 3
     CL1  <- data[28,2]   # Complacência Veia Pulmonar 1
     CL2  <- data[29,2]   # Complacência Veia Pulmonar 2
-    CLA  <- data[30,2]   # Complacência ?trio Esquerdo
+    CLA  <- data[30,2]   # Complacência Átrio Esquerdo
     CA1  <- data[31,2]   # Complacência Artéria Aorta 1
     CA2  <- data[32,2]   # Complacência Artéria Aorta 2
     CA3  <- data[33,2]   # Complacência Circulação Sistêmica
     CV1  <- data[34,2]   # Complacência Veias Sistêmicas 1
     CV2  <- data[35,2]   # Complacência Veias Sistêmicas 2
-    CRA  <- data[36,2]   # Complacência ?trio Direito
+    CRA  <- data[36,2]   # Complacência Átrio Direito
     PP1EDM  <- data[37,2]   # Pressão Diastólica Final Artéria Pulmonar 1
     PP2EDM  <- data[38,2]   # Pressão Diastólica Final  Artéria Pulmonar 2
     PP3EDM  <- data[39,2]   # Pressão Diastólica Final  Artéria Pulmonar 3
     PL1EDM  <- data[40,2]   # Pressão Diastólica Final  Veias Pulmonares 1
     PL2EDM  <- data[41,2]   # Pressão Diastólica Final  Veias Pulmonares 2
-    PLAEDM  <- data[42,2]   # Pressão Diastólica Final  ?trio Esquerdo
-    PLVEDM  <- data[43,2]   # Pressão Diastólica Final  Ventr?culo Esquerdo
+    PLAEDM  <- data[42,2]   # Pressão Diastólica Final  Átrio Esquerdo
+    PLVEDM  <- data[43,2]   # Pressão Diastólica Final  Ventrículo Esquerdo
     PA1EDM  <- data[44,2]   # Pressão Diastólica Final  Artéria Aorta 1 
     PA2EDM  <- data[45,2]   # Pressão Diastólica Final  Artéria Aorta 2
     PA3EDM  <- data[46,2]   # Pressão Diastólica Final  Artéria Sistêmica
     PV1EDM  <- data[47,2]   # Pressão Diastólica Final  Veias Sistêmicas 1
     PV2EDM  <- data[48,2]   # Pressão Diastólica Final  Veias Sistêmicas 2 
-    PRAEDM  <- data[49,2]   # Pressão Diastólica Final  ?trio Direito
-    PRVEDM  <- data[50,2]   # Pressão Diastólica Final  Ventr?culo Direito
-    FLAIC  <- data[51,2]   # Fluxo Inicial ?trio Esquerdo
-    FLVIC  <- data[52,2]   # Fluxo Inicial Ventr?culo Esquerdo
+    PRAEDM  <- data[49,2]   # Pressão Diastólica Final  Átrio Direito
+    PRVEDM  <- data[50,2]   # Pressão Diastólica Final  Ventrículo Direito
+    FLAIC  <- data[51,2]   # Fluxo Inicial Átrio Esquerdo
+    FLVIC  <- data[52,2]   # Fluxo Inicial Ventrículo Esquerdo
     FA1IC  <- data[53,2]   # Fluxo Inicial Artéria Aorta
     FV2IC  <- data[54,2]   # Fluxo Inicial Veias Sistêmicas
-    FRAIC  <- data[55,2]   # Fluxo Inicial ?trio Direito
-    FRVIC  <- data[56,2]   # Fluxo Inicial Ventr?culo Direito
+    FRAIC  <- data[55,2]   # Fluxo Inicial Átrio Direito
+    FRVIC  <- data[56,2]   # Fluxo Inicial Ventrículo Direito
     FP1IC  <- data[57,2]   # Fluxo Inicial Artéria Pulmonar
     FL2IC  <- data[58,2]   # Fluxo Inicial Veias Pulmonares
     FIS <- data[59,2]   # Sudden change in FLV at t > TIS
@@ -153,9 +155,9 @@ shinyServer(function(input, output, session){
     SV1 = .9	      # Stiffness first harmonic factor
     SV2 = .25	    # Stiffness second harmonic factor
     
-    tsim <<- input$tsim #Tempo de simulação
+    tsim = input$tsim #Tempo de simulação
     TH = 0.8          #Perido do ciclo cardiaco
-    TS = 0.3          #Periodo s?stole
+    TS = 0.3          #Periodo sístole
     step <- input$step      # Precisão da amostra
     
     #Vetor com as condições inicias ODE
@@ -264,11 +266,11 @@ shinyServer(function(input, output, session){
     }
     
     #Configuração para a resolução da ODE
-    out <- ode(func = odefcn, times = t, y = y0, parms = NULL, method="adams") #rk4 #adams #impAdams_d #bdf_d #ode45
+    out <- ode(func = odefcn, times = t, y = y0, parms = NULL, ynames = FALSE, method="adams") #rk4 #adams #impAdams_d #bdf_d #ode45
     
     #************************************************************************************************
     #Resultados 
-    t <- out[,1] #Variável de tempo da matriz de sa??da
+    t <- out[,1] #Variável de tempo da matriz de saída
     QLA <- out[,2]
     QLV <- out[,3] 
     QA1 <- out[,4] 
@@ -335,7 +337,11 @@ shinyServer(function(input, output, session){
     y11 <<- QLA
     y12 <<- QRV
     
-
+    exe <- toc()
+    exe <- as.numeric(exe)
+    exe <- exe[2]-exe[1]
+    output$temp <- renderText({exe})
+  
 })
   #Verifica alteração nos campos calcula a ODE
   #*********************************************************************************************
@@ -345,8 +351,7 @@ shinyServer(function(input, output, session){
   #********************************************************************************************
   #Verifica alteração nos campos e plota os resultados
   observeEvent(((input$tsim)|(input$step)|(unlist((input$table$changes$changes), use.names=FALSE))), {
-  
-  output$plot <- renderPlot({ 
+  output$plot <- renderPlotly({ 
     
     n1 = "PLV"
     n2 = "PA1"
@@ -375,49 +380,34 @@ shinyServer(function(input, output, session){
     k12 <<- input$k12
     
     
-    ifelse((k1==FALSE),(tipo1<-"n"),tipo1<-"l")
-    ifelse((k2==FALSE),(tipo2<-"n"),tipo2<-"l")
-    ifelse((k3==FALSE),(tipo3<-"n"),tipo3<-"l")
-    ifelse((k4==FALSE),(tipo4<-"n"),tipo4<-"l")
-    ifelse((k5==FALSE),(tipo5<-"n"),tipo5<-"l")
-    ifelse((k6==FALSE),(tipo6<-"n"),tipo6<-"l")
-    ifelse((k7==FALSE),(tipo7<-"n"),tipo7<-"l")
-    ifelse((k8==FALSE),(tipo8<-"n"),tipo8<-"l")
-    ifelse((k9==FALSE),(tipo9<-"n"),tipo9<-"l")
-    ifelse((k10==FALSE),(tipo10<-"n"),tipo10<-"l")
-    ifelse((k11==FALSE),(tipo11<-"n"),tipo11<-"l")
-    ifelse((k12==FALSE),(tipo12<-"n"),tipo12<-"l")
+    ifelse((k1==FALSE),(y1<-NULL)&(l1<-FALSE),(y1<-y1)&(l1<-TRUE))
+    ifelse((k2==FALSE),(y2<-NULL)&(l2<-FALSE),(y2<-y2)&(l2<-TRUE))
+    ifelse((k3==FALSE),(y3<-NULL)&(l3<-FALSE),(y3<-y3)&(l3<-TRUE))
+    ifelse((k4==FALSE),(y4<-NULL)&(l4<-FALSE),(y4<-y4)&(l4<-TRUE))
+    ifelse((k5==FALSE),(y5<-NULL)&(l5<-FALSE),(y5<-y5)&(l5<-TRUE))
+    ifelse((k6==FALSE),(y6<-NULL)&(l6<-FALSE),(y6<-y6)&(l6<-TRUE))
+    ifelse((k7==FALSE),(y7<-NULL)&(l7<-FALSE),(y7<-y7)&(l7<-TRUE))
+    ifelse((k8==FALSE),(y8<-NULL)&(l8<-FALSE),(y8<-y8)&(l8<-TRUE))
+    ifelse((k9==FALSE),(y9<-NULL)&(l9<-FALSE),(y9<-y9)&(l9<-TRUE))
+    ifelse((k10==FALSE),(y10<-NULL)&(l10<-FALSE),(y10<-y10)&(l10<-TRUE))
+    ifelse((k11==FALSE),(y11<-NULL)&(l11<-FALSE),(y11<-y11)&(l11<-TRUE))
+    ifelse((k11==FALSE),(y12<-NULL)&(l12<-FALSE),(y12<-y12)&(l12<-TRUE))
     
     
-    
-    ifelse((k1==FALSE),(z1<-integer(400)),(z1 <- y1))
-    ifelse((k2==FALSE),(z2<-integer(400)),(z2 <- y2))
-    ifelse((k3==FALSE),(z3<-integer(400)),(z3 <- y3))
-    ifelse((k4==FALSE),(z4<-integer(400)),(z4 <- y4))
-    ifelse((k5==FALSE),(z5<-integer(400)),(z5 <- y5))
-    ifelse((k6==FALSE),(z6<-integer(400)),(z6 <- y6))
-    ifelse((k7==FALSE),(z7<-integer(400)),(z7 <- y7))
-    ifelse((k8==FALSE),(z8<-integer(400)),(z8 <- y8))
-    ifelse((k9==FALSE),(z9<-integer(400)),(z9 <- y9))
-    ifelse((k10==FALSE),(z10<-integer(400)),(z10 <- y10))
-    ifelse((k11==FALSE),(z11<-integer(400)),(z11 <- y11))
-    ifelse((k12==FALSE),(z12<-integer(400)),(z12 <- y12))
-    
-    s <- c(z1,z2,z3,z4,z5,z6,z7,z8,z9,z10,z11,z12)
-    ylim = max(s,0)
-    
-    plot(x,y1, type=tipo1, col = "red", lwd = 2,xlim = c(0,tsim), ylim = c(0,ylim))
-    lines(x,y2, type=tipo2,col = "blue",lwd = 2)
-    lines(x,y3, type=tipo3, col = "green",lwd = 2)
-    lines(x,y4, type=tipo4, col = "orange",lwd = 2)
-    lines(x,y5, type=tipo5, col = "brown",lwd = 2)
-    lines(x,y6, type=tipo6, col = "pink",lwd = 2)
-    lines(x,y7, type=tipo7, col = "red",lwd = 2)
-    lines(x,y8, type=tipo8, col = "blue",lwd = 2)
-    lines(x,y9, type=tipo9, col = "green",lwd = 2)
-    lines(x,y10, type=tipo10, col = "orange",lwd = 2)
-    lines(x,y11, type=tipo11, col = "brown",lwd = 2)
-    lines(x,y12, type=tipo12, col = "pink",lwd = 2)
+      plot_ly(x=0, y=0,name='Legendas',type='scatter',mode='lines') %>%
+      add_trace(x=x,y=y1,name=n1,mode='lines',showlegend=l1,visible=l1)%>%
+      add_trace(x=x,y=y2,name=n2,mode='lines',showlegend=l2,visible=l2)%>%
+      add_trace(x=x,y=y3,name=n3,mode='lines',showlegend=l3,visible=l3)%>%
+      add_trace(x=x,y=y4,name=n4,mode='lines',showlegend=l4,visible=l4)%>%
+      add_trace(x=x,y=y5,name=n5,mode='lines',showlegend=l5,visible=l5)%>%
+      add_trace(x=x,y=y6,name=n6,mode='lines',showlegend=l6,visible=l6)%>%
+      add_trace(x=x,y=y7,name=n7,mode='lines',showlegend=l7,visible=l7)%>%
+      add_trace(x=x,y=y8,name=n8,mode='lines',showlegend=l8,visible=l8)%>%
+      add_trace(x=x,y=y9,name=n9,mode='lines',showlegend=l9,visible=l9)%>%
+      add_trace(x=x,y=y10,name=n10,mode='lines',showlegend=l10,visible=l10)%>%
+      add_trace(x=x,y=y11,name=n11,mode='lines',showlegend=l11,visible=l11)%>%
+      add_trace(x=x,y=y12,name=n12,mode='lines',showlegend=l12,visible=l12)
+      
  
   }) 
   }) 
